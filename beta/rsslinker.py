@@ -28,7 +28,7 @@ def get_args():
         ret = {}
     args = os.environ
     if args.has_key('QUERY_STRING'):
-        for (x,y) in parse_qsl(args['QUERY_STRING']):
+        for (x,y) in parse_qsl(args['QUERY_STRING'], keep_blank_values=True):
             ret[x] = y
     return ret
 
@@ -44,6 +44,7 @@ def shorten_url(url, shortener, tag='shortUrl'):
     return url
 
 if __name__ == '__main__':
+    # TODO: エラーの時は text/plain などにする
     print 'Content-Type: text/xml; charset="UTF-8"'
     print ''
 
@@ -67,9 +68,9 @@ if __name__ == '__main__':
         print '<error>no uri provided</error>'
         sys.exit()
 
-    host = urlparse.urlparse(uri).hostname
-
-    original_rss = urllib.urlopen(uri).read()
+    uri = urllib.urlopen(uri)
+    host = urlparse.urlparse(uri.geturl()).hostname
+    original_rss = uri.read()
     doc = minidom.parseString(original_rss)
     for item in doc.getElementsByTagName(itemtag):
         for x in item.getElementsByTagName(targettag):
@@ -90,8 +91,7 @@ if __name__ == '__main__':
                 if len(res) == 0:
                     item.parentNode.removeChild(item)
                 else:
-                    res = ', '.join([x+' '+y for (x,y) in res])
+                    res = ' - '.join([x+' '+y for (x,y) in res]) + ' '
                     text.data = res
 
-    # TODO: description 空のとき、 item ごと削除する
     print doc.toxml().encode('utf-8')
