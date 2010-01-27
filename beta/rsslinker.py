@@ -1,20 +1,21 @@
 #! /usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # link extractor for rss
 
 # sample:
-# http://localhost:8080/beta/rss?uri=http://whym.tumblr.com/rss&fil=&sub=
+# http://localhost:8080/rsslinker?uri=http%3A//ja.wikipedia.org/w/index.php%3Ftitle%3DTemplate%3A%25E6%2596%25B0%25E3%2581%2597%25E3%2581%2584%25E8%25A8%2598%25E4%25BA%258B%26feed%3Drss%26action%3Dhistory&target=description&span=<p>.*</p>
 
 from xml.dom import minidom
 import urlparse
 import urllib
 import sys
 import re
-from cgi import parse_qsl
+import cgi
 import yaml
 import os
 
+# fix user agent for wikimedia.org's preference
 from urllib import FancyURLopener
 class MyOpener(FancyURLopener):
     version = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11'
@@ -26,10 +27,9 @@ def get_args():
     ret = yaml.load(open('rsslinker.yaml'))
     if not ret:
         ret = {}
-    args = os.environ
-    if args.has_key('QUERY_STRING'):
-        for (x,y) in parse_qsl(args['QUERY_STRING'], keep_blank_values=True):
-            ret[x] = y
+    args = cgi.FieldStorage(keep_blank_values=True)
+    for k in args.keys():
+        ret[k] = args.getlist(k).pop()
     return ret
 
 def extract_links(html):
@@ -45,8 +45,7 @@ def shorten_url(url, shortener, tag='shortUrl'):
 
 if __name__ == '__main__':
     # TODO: エラーの時は text/plain などにする
-    print 'Content-Type: text/xml; charset="UTF-8"'
-    print ''
+    # TODO: アイテム抽出の結果、URL短縮の結果を datastore にキャッシュする
 
     uri = None
     targettag = 'description'
@@ -54,18 +53,28 @@ if __name__ == '__main__':
     shortener = None
     itemtag = 'item'
 
-    h = get_args()
-    if h.has_key('uri'):
-        uri = h['uri']
-    if h.has_key('target'):
-        targettag = h['target']
-    if h.has_key('span'):
-        span_pat = re.compile(h['span'])
-    if h.has_key('shortener'):
-        shortener = h['shortener']
+    args = get_args()
+    if args.has_key('uri'):
+        uri = args['uri']
+    if args.has_key('target'):
+        targettag = args['target']
+    if args.has_key('span'):
+        span_pat = re.compile(args['span'])
+    if args.has_key('shortener'):
+        shortener = args['shortener']
 
     if not uri:
-        print '<error>no uri provided</error>'
+        print 'Content-Type: text/html'
+        print ''
+        print '<title>no uri provided</title>'
+        print '<h1>no uri provided</h1>'
+        # import pprint
+        # import os
+        # print '<pre>'
+        # pp = pprint.PrettyPrinter(width=80)
+        # pp.pprint(dict(os.environ))
+        # pp.pprint(dict(args))
+        # print '</pre>'
         sys.exit()
 
     uri = urllib.urlopen(uri)
@@ -94,4 +103,12 @@ if __name__ == '__main__':
                     res = ' - '.join([x+' '+y for (x,y) in res]) + ' '
                     text.data = res
 
+    def printheader(header,original,default=None):
+        x = original.info().getheader(header)
+        if x or default:
+            print '%s: %s' % (header, x if x else default)
+    
+    printheader('Last-Modified', uri)
+    printheader('Content-Type', uri, 'text/xml; charset="UTF-8"')
+    print ''
     print doc.toxml().encode('utf-8')

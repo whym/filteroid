@@ -1,0 +1,2 @@
+shortener:
+  http://api.bit.ly/shorten?version=2.0.1&longUrl=%s&format=xml&login=samplename&apiKey=R_samplekey
