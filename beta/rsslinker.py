@@ -4,7 +4,7 @@
 # link extractor for rss
 
 # sample:
-# http://localhost:8080/rsslinker?uri=http%3A//ja.wikipedia.org/w/index.php%3Ftitle%3DTemplate%3A%25E6%2596%25B0%25E3%2581%2597%25E3%2581%2584%25E8%25A8%2598%25E4%25BA%258B%26feed%3Drss%26action%3Dhistory&target=description&span=<p>.*</p>
+# http://localhost:8080/beta/rsslinker?uri=http%3A//ja.wikipedia.org/w/index.php%3Ftitle%3DTemplate%3A%25E6%2596%25B0%25E3%2581%2597%25E3%2581%2584%25E8%25A8%2598%25E4%25BA%258B%26feed%3Drss%26action%3Dhistory&target=description&span=<p>.*</p>
 
 from xml.dom import minidom
 import urlparse
@@ -49,9 +49,11 @@ if __name__ == '__main__':
 
     uri = None
     targettag = 'description'
-    span_pat = r'.*'
+    span_pat = r'.+'
     shortener = None
     itemtag = 'item'
+    delimiter = ' '
+    format = '%s %s'
 
     args = get_args()
     if args.has_key('uri'):
@@ -62,6 +64,10 @@ if __name__ == '__main__':
         span_pat = re.compile(args['span'])
     if args.has_key('shortener'):
         shortener = args['shortener']
+    if args.has_key('delimiter'):
+        delimiter = args['delimiter']
+    if args.has_key('format'):
+        format = args['format']
 
     if not uri:
         print 'Content-Type: text/html'
@@ -84,11 +90,12 @@ if __name__ == '__main__':
     for item in doc.getElementsByTagName(itemtag):
         for x in item.getElementsByTagName(targettag):
             for text in filter(lambda x: x.nodeType == 3, x.childNodes):
+                links = []
                 html = text.data
                 for m in re.finditer(span_pat, html):
                     start,end = m.span()
-                    html = html[start:end]
-                links = extract_links(html)
+                    print >> sys.stderr, start, end
+                    links += extract_links(html[start:end])
 
                 res = []
                 for (title,path) in links:
@@ -100,7 +107,7 @@ if __name__ == '__main__':
                 if len(res) == 0:
                     item.parentNode.removeChild(item)
                 else:
-                    res = ' - '.join([x+' '+y for (x,y) in res]) + ' '
+                    res = delimiter.join([format % (x,y) for (x,y) in res])
                     text.data = res
 
     def printheader(header,original,default=None):
