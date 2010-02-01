@@ -1,0 +1,13 @@
+application: filteroid
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /beta/rsslinker
+  script: rsslinker/rsslinker.py
+- url: /favicon.ico
+  static_files: static/images/favicon.png
+  upload:       static/images/favicon.png
+- url: /
+  static_dir: static
