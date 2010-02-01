@@ -94,7 +94,6 @@ if __name__ == '__main__':
                 html = text.data
                 for m in re.finditer(span_pat, html):
                     start,end = m.span()
-                    print >> sys.stderr, start, end
                     links += extract_links(html[start:end])
 
                 res = []
