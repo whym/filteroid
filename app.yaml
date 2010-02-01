@@ -5,7 +5,7 @@ api_version: 1
 
 handlers:
 - url: /beta/rsslinker
-  script: beta/rsslinker.py
+  script: rsslinker/rsslinker.py
 - url: /favicon.ico
   static_files: static/images/favicon.png
   upload:       static/images/favicon.png
