@@ -54,6 +54,7 @@ if __name__ == '__main__':
     itemtag = 'item'
     delimiter = ' '
     format = '%s %s'
+    anchorlimit = None
 
     args = get_args()
     if args.has_key('uri'):
@@ -68,6 +69,8 @@ if __name__ == '__main__':
         delimiter = args['delimiter']
     if args.has_key('format'):
         format = args['format']
+    if args.has_key('anchorlimit'):
+        anchorlimit = int(args['anchorlimit'])
 
     if not uri:
         print 'Content-Type: text/html'
@@ -82,6 +85,11 @@ if __name__ == '__main__':
         # pp.pprint(dict(args))
         # print '</pre>'
         sys.exit()
+
+    if anchorlimit != None:
+        anchor = lambda x: x if len(x) <= anchorlimit else x[0:anchorlimit-2]+'..'
+    else:
+        anchor = lambda x: x
 
     uri = urllib.urlopen(uri)
     host = urlparse.urlparse(uri.geturl()).hostname
@@ -106,7 +114,7 @@ if __name__ == '__main__':
                 if len(res) == 0:
                     item.parentNode.removeChild(item)
                 else:
-                    res = delimiter.join([format % (x,y) for (x,y) in res])
+                    res = delimiter.join([format % (anchor(x),y) for (x,y) in res])
                     text.data = res
 
     def printheader(header,original,default=None):
