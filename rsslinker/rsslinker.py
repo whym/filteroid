@@ -101,8 +101,8 @@ if __name__ == '__main__':
     for item in doc.getElementsByTagName(itemtag):
         newnodes = []
         found = False
-        for x in item.getElementsByTagName(targettag):
-            for text in filter(lambda x: x.nodeType == 3, x.childNodes):
+        for target in item.getElementsByTagName(targettag):
+            for text in filter(lambda x: x.nodeType == 3, target.childNodes):
                 links = []
                 html = text.data
                 for m in re.finditer(span_pat, html):
