@@ -55,6 +55,7 @@ if __name__ == '__main__':
     delimiter = ' '
     format = '%s %s'
     anchorlimit = None
+    split = False
 
     args = get_args()
     if args.has_key('uri'):
@@ -71,6 +72,8 @@ if __name__ == '__main__':
         format = args['format']
     if args.has_key('anchorlimit'):
         anchorlimit = int(args['anchorlimit'])
+    if args.has_key('split'):
+        split = args['split']
 
     if not uri:
         print 'Content-Type: text/html'
@@ -96,6 +99,8 @@ if __name__ == '__main__':
     original_rss = uri.read()
     doc = minidom.parseString(original_rss)
     for item in doc.getElementsByTagName(itemtag):
+        newnodes = []
+        found = False
         for x in item.getElementsByTagName(targettag):
             for text in filter(lambda x: x.nodeType == 3, x.childNodes):
                 links = []
@@ -111,11 +116,21 @@ if __name__ == '__main__':
                     if shortener:
                         path = shorten_url(path, shortener)
                     res.append((title, path))
-                if len(res) == 0:
-                    item.parentNode.removeChild(item)
-                else:
-                    res = delimiter.join([format % (anchor(x),y) for (x,y) in res])
-                    text.data = res
+                if len(res) > 0:
+                    found = True
+                    if split:
+                        parent = item.parentNode
+                        for (x,y) in res:
+                            text.data = format % (anchor(x),y)
+                            newnodes.append(item.cloneNode(True))
+                    else:
+                        text.data = delimiter.join([format % (anchor(x),y) for (x,y) in res])
+        if found:
+            if not split:
+                newnodes.append(item.cloneNode(True))
+            for x in newnodes:
+                item.parentNode.insertBefore(x, item)
+        item.parentNode.removeChild(item)
 
     def printheader(header,original,default=None):
         x = original.info().getheader(header)
