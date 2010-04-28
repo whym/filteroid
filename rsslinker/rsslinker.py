@@ -52,6 +52,7 @@ if __name__ == '__main__':
     span_pat = r'.+'
     shortener = None
     itemtag = 'item'
+    idtag  = 'guid'
     delimiter = ' '
     format = '%s %s'
     anchorlimit = None
@@ -64,6 +65,8 @@ if __name__ == '__main__':
         targettag = args['target']
     if args.has_key('item'):
         itemtag = args['item']
+    if args.has_key('id'):
+        idtag = args['id']
     if args.has_key('span'):
         span_pat = re.compile(args['span'])
     if args.has_key('shortener'):
@@ -124,7 +127,9 @@ if __name__ == '__main__':
                         parent = item.parentNode
                         for (x,y) in res:
                             text.data = format % (anchor(x),y)
-                            newnodes.append(item.cloneNode(True))
+                            c = item.cloneNode(True)
+                            c.getElementsByTagName(idtag)[0].firstChild.data += '#' + str(len(newnodes)+1)
+                            newnodes.append(c)
                     else:
                         text.data = delimiter.join([format % (anchor(x),y) for (x,y) in res])
         if found:
