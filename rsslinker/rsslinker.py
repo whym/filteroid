@@ -62,6 +62,8 @@ if __name__ == '__main__':
         uri = args['uri']
     if args.has_key('target'):
         targettag = args['target']
+    if args.has_key('item'):
+        itemtag = args['item']
     if args.has_key('span'):
         span_pat = re.compile(args['span'])
     if args.has_key('shortener'):
