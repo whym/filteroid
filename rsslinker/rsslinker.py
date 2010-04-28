@@ -57,8 +57,15 @@ if __name__ == '__main__':
     format = '%s %s'
     anchorlimit = None
     split = False
+    feedtype = 'rss'
 
     args = get_args()
+    if args.has_key('type'):
+        feedtype = args['type']
+    if feedtype == 'rss':
+        targettag,itemtag,idtag = 'description','item','guid'
+    elif feedtype == 'atom':
+        targettag,itemtag,idtag = 'summary','entry','id'
     if args.has_key('uri'):
         uri = args['uri']
     if args.has_key('target'):
