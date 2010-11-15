@@ -4,8 +4,8 @@ runtime: python
 api_version: 1
 
 handlers:
-- url: /beta/rsslinker
-  script: rsslinker/rsslinker.py
+- url: /beta/(rsslinker|mwabuselog)
+  script: \1/\1.py
 - url: /favicon.ico
   static_files: static/images/favicon.png
   upload:       static/images/favicon.png
