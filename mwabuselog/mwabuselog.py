@@ -26,8 +26,9 @@ myopener = MyOpener()
 urllib.urlopen = myopener.open
 urllib.urlretrieve = myopener.retrieve
 
-def shorten_url(url, shortener, tag='shortUrl'):
-    doc = minidom.parseString(urllib.urlopen(shortener % urllib.quote(url)).read())
+def shorten_url(url, shortener, tag='url'):
+    docstr = urllib.urlopen(shortener % urllib.quote(url)).read()
+    doc = minidom.parseString(docstr)
     elems = doc.getElementsByTagName(tag)
     if len(elems) > 0:
         url = elems[0].firstChild.data
@@ -54,7 +55,13 @@ def get_args():
     return ret
 
 def is_valid_uri(s):
-    return s.index(':') > 0
+    if s:
+    # TODO: more strict check
+        try:
+            return s.index(':') > 0
+        except ValueError:
+            None
+    return False
 
 def get_sitename(mwhome):
     doc = minidom.parseString(urllib.urlopen(mwhome + '/w/api.php', urllib.urlencode(
